@@ -1,3 +1,5 @@
+mod dice;
+
 use rand::Rng;
 
 pub struct Die {
