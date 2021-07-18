@@ -1,0 +1,8 @@
+[package]
+name = "diceroller"
+version = "0.1.0"
+authors = ["Nicolas Frankel <nicolas@frankel.ch>"]
+edition = "2018"
+
+[dependencies]
+rand = "0.8.4"
