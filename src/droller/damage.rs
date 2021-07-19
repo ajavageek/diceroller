@@ -1,5 +1,9 @@
 use crate::droller::Die;
-use std::{iter::Sum, num::NonZeroU8};
+use std::{
+    fmt::{Display, Formatter},
+    iter::Sum,
+    num::NonZeroU8,
+};
 
 impl Default for Die {
     fn default() -> Self {
@@ -24,6 +28,12 @@ impl Sum for Damage {
             stun: dmg1.stun + dmg2.stun,
             body: dmg1.body + dmg2.body,
         })
+    }
+}
+
+impl Display for Damage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "stun: {}, body: {}", self.stun, self.body)
     }
 }
 
