@@ -1,7 +1,9 @@
 use crate::Die;
+use std::num::NonZeroU8;
 
 impl Die {
     pub fn new(faces: u8) -> Die {
+        let faces = NonZeroU8::new(faces).unwrap().get();
         Die { faces }
     }
     pub fn d2() -> Die {
