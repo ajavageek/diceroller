@@ -1,5 +1,6 @@
 use crate::droller::Die;
 use std::{
+    cmp::max,
     fmt::{Display, Formatter},
     iter::Sum,
     num::NonZeroU8,
@@ -59,5 +60,27 @@ impl NormalDamageDice {
                 Damage { stun, body }
             })
             .sum()
+    }
+}
+
+pub struct KillingDamageDice {
+    number: u8,
+}
+
+impl KillingDamageDice {
+    pub fn new(number: u8) -> KillingDamageDice {
+        let number = NonZeroU8::new(number).unwrap().get();
+        KillingDamageDice { number }
+    }
+    pub fn roll(self) -> Damage {
+        let body = (0..self.number)
+            .map(|_| Die::default())
+            .map(|die| die.roll())
+            .sum();
+        let mult = max(1, Die::default().roll() - 1);
+        Damage {
+            body,
+            stun: body * mult,
+        }
     }
 }
