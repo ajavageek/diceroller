@@ -1,5 +1,5 @@
 use crate::droller::Die;
-use std::num::NonZeroU8;
+use std::{iter::Sum, num::NonZeroU8};
 
 impl Default for Die {
     fn default() -> Self {
@@ -12,6 +12,21 @@ pub struct Damage {
     pub body: u8,
 }
 
+impl Damage {
+    fn zero() -> Damage {
+        Damage { stun: 0, body: 0 }
+    }
+}
+
+impl Sum for Damage {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.fold(Damage::zero(), |dmg1, dmg2| Damage {
+            stun: dmg1.stun + dmg2.stun,
+            body: dmg1.body + dmg2.body,
+        })
+    }
+}
+
 pub struct NormalDamageDice {
     number: u8,
 }
@@ -22,19 +37,17 @@ impl NormalDamageDice {
         NormalDamageDice { number }
     }
     pub fn roll(self) -> Damage {
-        let mut stun = 0;
-        let mut body = 0;
-        for _ in 0..self.number {
-            let die = Die::default();
-            let roll = die.roll();
-            stun += roll;
-            if roll == 1 {
-            } else if roll == 6 {
-                body += 2
-            } else {
-                body += 1
-            }
-        }
-        Damage { stun, body }
+        (0..self.number)
+            .map(|_| Die::default())
+            .map(|die| die.roll())
+            .map(|stun| {
+                let body = match stun {
+                    1 => 0,
+                    6 => 2,
+                    _ => 1,
+                };
+                Damage { stun, body }
+            })
+            .sum()
     }
 }

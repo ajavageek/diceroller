@@ -1,5 +1,5 @@
-mod dice;
 pub mod damage;
+mod dice;
 
 use rand::Rng;
 
