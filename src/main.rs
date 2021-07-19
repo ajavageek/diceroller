@@ -1,8 +1,9 @@
 mod droller;
 
-use crate::droller::Die;
+use crate::droller::damage::NormalDamageDice;
 
 fn main() {
-    let d6 = Die::default();
-    println!("{}", d6.roll());
+    let one_die = NormalDamageDice::new(1);
+    let damage = one_die.roll();
+    println!("stun: {}, body: {}", damage.stun, damage.body);
 }

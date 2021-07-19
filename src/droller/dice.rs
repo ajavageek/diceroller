@@ -1,6 +1,5 @@
+use crate::droller::Die;
 use paste::paste;
-
-use crate::Die;
 use std::num::NonZeroU8;
 
 macro_rules! gen_dice_fn_for {
