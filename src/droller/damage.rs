@@ -1,5 +1,6 @@
 use crate::droller::Die;
 use std::{
+    any::Any,
     cmp::max,
     fmt::{Display, Formatter},
     iter::Sum,
@@ -12,29 +13,48 @@ impl Default for Die {
     }
 }
 
-pub struct Damage {
+pub trait Damage {
+    fn stun(self) -> u8;
+    fn body(self) -> u8;
+    fn as_any(&self) -> &dyn Any;
+}
+
+#[derive(Copy, Clone)]
+pub struct NormalDamage {
     pub stun: u8,
     pub body: u8,
 }
 
-impl Damage {
-    fn zero() -> Damage {
-        Damage { stun: 0, body: 0 }
+impl NormalDamage {
+    fn zero() -> NormalDamage {
+        NormalDamage { stun: 0, body: 0 }
     }
 }
 
-impl Sum for Damage {
+impl Damage for NormalDamage {
+    fn stun(self) -> u8 {
+        self.stun
+    }
+    fn body(self) -> u8 {
+        self.body
+    }
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+}
+
+impl Sum for NormalDamage {
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Damage::zero(), |dmg1, dmg2| Damage {
+        iter.fold(NormalDamage::zero(), |dmg1, dmg2| NormalDamage {
             stun: dmg1.stun + dmg2.stun,
             body: dmg1.body + dmg2.body,
         })
     }
 }
 
-impl Display for Damage {
+impl Display for NormalDamage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "stun: {}, body: {}", self.stun, self.body)
+        write!(f, "stun: {}, body: {}", self.stun(), self.body())
     }
 }
 
@@ -47,8 +67,8 @@ impl NormalDamageDice {
         let number = NonZeroU8::new(number).unwrap().get();
         NormalDamageDice { number }
     }
-    pub fn roll(self) -> Damage {
-        (0..self.number)
+    pub fn roll(self) -> Box<dyn Damage> {
+        let damage = (0..self.number)
             .map(|_| Die::default())
             .map(|die| die.roll())
             .map(|stun| {
@@ -57,9 +77,10 @@ impl NormalDamageDice {
                     6 => 2,
                     _ => 1,
                 };
-                Damage { stun, body }
+                NormalDamage { stun, body }
             })
-            .sum()
+            .sum::<NormalDamage>();
+        Box::new(damage)
     }
 }
 
@@ -72,15 +93,15 @@ impl KillingDamageDice {
         let number = NonZeroU8::new(number).unwrap().get();
         KillingDamageDice { number }
     }
-    pub fn roll(self) -> Damage {
+    pub fn roll(self) -> Box<dyn Damage> {
         let body = (0..self.number)
             .map(|_| Die::default())
             .map(|die| die.roll())
             .sum();
         let mult = max(1, Die::default().roll() - 1);
-        Damage {
+        Box::new(NormalDamage {
             body,
             stun: body * mult,
-        }
+        })
     }
 }
