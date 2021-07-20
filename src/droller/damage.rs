@@ -1,6 +1,5 @@
 use crate::droller::Die;
 use std::{
-    any::Any,
     cmp::max,
     fmt::{Display, Formatter},
     iter::Sum,
@@ -13,10 +12,9 @@ impl Default for Die {
     }
 }
 
-pub trait Damage {
+pub trait Damage: Display {
     fn stun(self) -> u8;
     fn body(self) -> u8;
-    fn as_any(&self) -> &dyn Any;
 }
 
 #[derive(Copy, Clone)]
@@ -37,9 +35,6 @@ impl Damage for NormalDamage {
     }
     fn body(self) -> u8 {
         self.body
-    }
-    fn as_any(&self) -> &dyn Any {
-        self
     }
 }
 
