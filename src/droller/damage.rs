@@ -53,6 +53,27 @@ impl Display for NormalDamage {
     }
 }
 
+#[derive(Copy, Clone)]
+pub struct KillingDamage {
+    pub body: u8,
+    pub mult: u8,
+}
+
+impl Damage for KillingDamage {
+    fn stun(self) -> u8 {
+        self.body * self.mult
+    }
+    fn body(self) -> u8 {
+        self.body
+    }
+}
+
+impl Display for KillingDamage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "stun: {}, body: {} (mult: {})", self.stun(), self.body, self.mult)
+    }
+}
+
 pub struct NormalDamageDice {
     number: u8,
 }
@@ -94,9 +115,6 @@ impl KillingDamageDice {
             .map(|die| die.roll())
             .sum();
         let mult = max(1, Die::default().roll() - 1);
-        Box::new(NormalDamage {
-            body,
-            stun: body * mult,
-        })
+        Box::new(KillingDamage { body, mult })
     }
 }
