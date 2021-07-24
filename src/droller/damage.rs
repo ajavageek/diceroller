@@ -102,18 +102,44 @@ impl NormalDamageDice {
 
 pub struct KillingDamageDice {
     number: u8,
+    half: bool,
+    pip: bool,
 }
 
 impl KillingDamageDice {
     pub fn new(number: u8) -> KillingDamageDice {
         let number = NonZeroU8::new(number).unwrap().get();
-        KillingDamageDice { number }
+        KillingDamageDice {
+            number,
+            half: false,
+            pip: false,
+        }
+    }
+    pub fn new_and_half(number: u8) -> KillingDamageDice {
+        KillingDamageDice {
+            number,
+            half: true,
+            pip: false,
+        }
+    }
+    pub fn new_and_pip(number: u8) -> KillingDamageDice {
+        KillingDamageDice {
+            number,
+            half: false,
+            pip: true,
+        }
     }
     pub fn roll(self) -> Box<dyn Damage> {
-        let body = (0..self.number)
+        let mut body = (0..self.number)
             .map(|_| Die::default())
             .map(|die| die.roll())
             .sum();
+        if self.pip {
+            body += 1;
+        } else if self.half {
+            let d3 = Die::new(3);
+            body += d3.roll();
+        }
         let mult = max(1, Die::default().roll() - 1);
         Box::new(KillingDamage { body, mult })
     }
