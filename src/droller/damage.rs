@@ -100,10 +100,15 @@ impl NormalDamageDice {
     }
 }
 
+enum DiceFraction {
+    None,
+    Pip,
+    Half,
+}
+
 pub struct KillingDamageDice {
     number: u8,
-    half: bool,
-    pip: bool,
+    fraction: DiceFraction,
 }
 
 impl KillingDamageDice {
@@ -111,22 +116,19 @@ impl KillingDamageDice {
         let number = NonZeroU8::new(number).unwrap().get();
         KillingDamageDice {
             number,
-            half: false,
-            pip: false,
+            fraction: DiceFraction::None,
         }
     }
     pub fn new_and_half(number: u8) -> KillingDamageDice {
         KillingDamageDice {
             number,
-            half: true,
-            pip: false,
+            fraction: DiceFraction::Half,
         }
     }
     pub fn new_and_pip(number: u8) -> KillingDamageDice {
         KillingDamageDice {
             number,
-            half: false,
-            pip: true,
+            fraction: DiceFraction::Pip,
         }
     }
     pub fn roll(self) -> Box<dyn Damage> {
@@ -134,11 +136,13 @@ impl KillingDamageDice {
             .map(|_| Die::default())
             .map(|die| die.roll())
             .sum();
-        if self.pip {
-            body += 1;
-        } else if self.half {
-            let d3 = Die::new(3);
-            body += d3.roll();
+        match self.fraction {
+            DiceFraction::Pip => body += 1,
+            DiceFraction::Half => {
+                let d3 = Die::new(3);
+                body += d3.roll();
+            }
+            _ => {}
         }
         let mult = max(1, Die::default().roll() - 1);
         Box::new(KillingDamage { body, mult })
