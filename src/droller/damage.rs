@@ -12,7 +12,7 @@ impl Default for Die {
     }
 }
 
-pub trait Damage: Display {
+pub trait Damage {
     fn stun(self) -> u8;
     fn body(self) -> u8;
 }
@@ -74,6 +74,10 @@ impl Display for KillingDamage {
     }
 }
 
+pub trait DamageDice<D: Damage> {
+    fn roll(self) -> D;
+}
+
 pub struct NormalDamageDice {
     number: u8,
 }
@@ -83,8 +87,11 @@ impl NormalDamageDice {
         let number = NonZeroU8::new(number).unwrap().get();
         NormalDamageDice { number }
     }
-    pub fn roll(self) -> Box<dyn Damage> {
-        let damage = (0..self.number)
+}
+
+impl DamageDice<NormalDamage> for NormalDamageDice {
+    fn roll(self) -> NormalDamage {
+        (0..self.number)
             .map(|_| Die::default())
             .map(|die| die.roll())
             .map(|stun| {
@@ -95,8 +102,7 @@ impl NormalDamageDice {
                 };
                 NormalDamage { stun, body }
             })
-            .sum::<NormalDamage>();
-        Box::new(damage)
+            .sum::<NormalDamage>()
     }
 }
 
@@ -131,7 +137,10 @@ impl KillingDamageDice {
             fraction: DiceFraction::Pip,
         }
     }
-    pub fn roll(self) -> Box<dyn Damage> {
+}
+
+impl DamageDice<KillingDamage> for KillingDamageDice {
+    fn roll(self) -> KillingDamage {
         let mut body = (0..self.number)
             .map(|_| Die::default())
             .map(|die| die.roll())
@@ -145,6 +154,6 @@ impl KillingDamageDice {
             _ => {}
         }
         let mult = max(1, Die::default().roll() - 1);
-        Box::new(KillingDamage { body, mult })
+        KillingDamage { body, mult }
     }
 }

@@ -1,6 +1,6 @@
 mod droller;
 
-use crate::droller::damage::{KillingDamageDice, NormalDamageDice};
+use crate::droller::damage::{DamageDice, KillingDamageDice, NormalDamageDice};
 
 fn main() {
     let normal_die = NormalDamageDice::new(1);
